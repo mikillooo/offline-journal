@@ -22,11 +22,12 @@
 <meta name="twitter:image" content="https://s.wordpress.com/mshots/v1/https%3A%2F%2Fmikillooo.github.io%2Foffline-journal%2F?w=1200&h=630">
 <meta name="twitter:image:alt" content="Offline Trading Journal">
 
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Offline Trading Journal</title>
 
 <style>
+
 *{
     margin:0;
     padding:0;
@@ -46,8 +47,8 @@ body{
 }
 
 h1{
-    margin-bottom:20px;
     text-align:center;
+    margin-bottom:20px;
 }
 
 .card{
@@ -57,7 +58,9 @@ h1{
     margin-bottom:20px;
 }
 
-input, textarea, button{
+input,
+textarea,
+button{
     width:100%;
     padding:12px;
     margin-top:10px;
@@ -65,7 +68,8 @@ input, textarea, button{
     border-radius:10px;
 }
 
-input, textarea{
+input,
+textarea{
     background:#334155;
     color:white;
 }
@@ -88,7 +92,7 @@ button:hover{
     margin-top:15px;
 }
 
-img{
+.trade img{
     width:100%;
     border-radius:10px;
     margin-top:10px;
@@ -96,13 +100,17 @@ img{
 
 .delete-btn{
     background:#ef4444;
-    margin-top:10px;
+}
+
+.permission-btn{
+    background:#3b82f6;
 }
 
 .stats{
     display:grid;
     grid-template-columns:1fr 1fr;
     gap:10px;
+    margin-top:15px;
 }
 
 .stat-box{
@@ -111,6 +119,11 @@ img{
     border-radius:10px;
     text-align:center;
 }
+
+small{
+    color:#cbd5e1;
+}
+
 </style>
 </head>
 
@@ -118,73 +131,176 @@ img{
 
 <div class="container">
 
-<h1>📈 Offline Trading Journal</h1>
+    <h1>📈 Offline Trading Journal</h1>
 
-<div class="card">
-    <h2>Add Trade</h2>
+    <div class="card">
 
-    <input type="text" id="pair" placeholder="Pair (XAUUSD)">
-    
-    <input type="number" id="profit" placeholder="Profit / Loss">
+        <h2>Storage Permission</h2>
 
-    <textarea id="note" placeholder="Trade Notes"></textarea>
+        <button class="permission-btn"
+        onclick="requestStoragePermission()">
+        Request Storage Permission
+        </button>
 
-    <input type="file" id="imageInput" accept="image/*">
+        <button class="permission-btn"
+        onclick="pickFolder()">
+        Request Folder Access
+        </button>
 
-    <button onclick="saveTrade()">Save Trade</button>
-</div>
-
-<div class="card">
-    <h2>Statistics</h2>
-
-    <div class="stats">
-        <div class="stat-box">
-            <h3 id="totalTrades">0</h3>
-            <p>Total Trades</p>
-        </div>
-
-        <div class="stat-box">
-            <h3 id="totalPnL">$0</h3>
-            <p>Total PnL</p>
-        </div>
     </div>
-</div>
 
-<div class="card">
-    <h2>Trade History</h2>
-    <div id="tradeList"></div>
-</div>
+    <div class="card">
+
+        <h2>Add Trade</h2>
+
+        <input type="text"
+        id="pair"
+        placeholder="Trading Pair">
+
+        <input type="number"
+        id="profit"
+        placeholder="Profit / Loss">
+
+        <textarea
+        id="note"
+        placeholder="Trade Notes"></textarea>
+
+        <input type="file"
+        id="imageInput"
+        accept="image/*">
+
+        <button onclick="saveTrade()">
+        Save Trade
+        </button>
+
+    </div>
+
+    <div class="card">
+
+        <h2>Statistics</h2>
+
+        <div class="stats">
+
+            <div class="stat-box">
+                <h3 id="totalTrades">0</h3>
+                <p>Total Trades</p>
+            </div>
+
+            <div class="stat-box">
+                <h3 id="totalPnL">$0</h3>
+                <p>Total PnL</p>
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="card">
+
+        <h2>Trade History</h2>
+
+        <div id="tradeList"></div>
+
+    </div>
 
 </div>
 
 <script>
+
 let db;
 
-const request = indexedDB.open("TradingJournalDB", 1);
+const request = indexedDB.open(
+    "TradingJournalDB",
+    1
+);
 
 request.onupgradeneeded = function(event){
+
     db = event.target.result;
 
-    db.createObjectStore("trades", {
+    db.createObjectStore("trades",{
         keyPath:"id",
         autoIncrement:true
     });
 };
 
 request.onsuccess = function(event){
+
     db = event.target.result;
+
     loadTrades();
 };
 
+async function requestStoragePermission(){
+
+    if(
+        navigator.storage &&
+        navigator.storage.persist
+    ){
+
+        const granted =
+        await navigator.storage.persist();
+
+        if(granted){
+
+            alert(
+                "Persistent storage granted"
+            );
+
+        }else{
+
+            alert(
+                "Storage permission denied"
+            );
+        }
+
+    }else{
+
+        alert(
+            "Browser not supported"
+        );
+    }
+}
+
+async function pickFolder(){
+
+    try{
+
+        const folderHandle =
+        await window.showDirectoryPicker();
+
+        console.log(folderHandle);
+
+        alert(
+            "Folder access granted"
+        );
+
+    }catch(err){
+
+        alert(
+            "Folder access denied"
+        );
+    }
+}
+
 function saveTrade(){
 
-    const pair = document.getElementById("pair").value;
-    const profit = document.getElementById("profit").value;
-    const note = document.getElementById("note").value;
-    const imageFile = document.getElementById("imageInput").files[0];
+    const pair =
+    document.getElementById("pair").value;
+
+    const profit =
+    document.getElementById("profit").value;
+
+    const note =
+    document.getElementById("note").value;
+
+    const imageFile =
+    document.getElementById("imageInput").files[0];
 
     if(!pair || !profit){
-        alert("Please fill all fields");
+
+        alert("Fill all fields");
+
         return;
     }
 
@@ -193,98 +309,168 @@ function saveTrade(){
     reader.onload = function(){
 
         const trade = {
-            pair,
-            profit: Number(profit),
-            note,
-            image: reader.result,
-            date: new Date().toLocaleString()
+
+            pair:pair,
+
+            profit:Number(profit),
+
+            note:note,
+
+            image:reader.result || "",
+
+            date:new Date().toLocaleString()
         };
 
-        const transaction = db.transaction(["trades"], "readwrite");
-        const store = transaction.objectStore("trades");
+        const transaction =
+        db.transaction(
+            ["trades"],
+            "readwrite"
+        );
+
+        const store =
+        transaction.objectStore("trades");
 
         store.add(trade);
 
         transaction.oncomplete = function(){
+
             loadTrades();
 
-            document.getElementById("pair").value = "";
-            document.getElementById("profit").value = "";
-            document.getElementById("note").value = "";
-            document.getElementById("imageInput").value = "";
+            document.getElementById(
+                "pair"
+            ).value = "";
+
+            document.getElementById(
+                "profit"
+            ).value = "";
+
+            document.getElementById(
+                "note"
+            ).value = "";
+
+            document.getElementById(
+                "imageInput"
+            ).value = "";
         };
     };
 
     if(imageFile){
+
         reader.readAsDataURL(imageFile);
+
     }else{
+
         reader.onload();
     }
 }
 
 function loadTrades(){
 
-    const tradeList = document.getElementById("tradeList");
+    const tradeList =
+    document.getElementById("tradeList");
+
     tradeList.innerHTML = "";
 
     let totalPnL = 0;
+
     let totalTrades = 0;
 
-    const transaction = db.transaction(["trades"], "readonly");
-    const store = transaction.objectStore("trades");
+    const transaction =
+    db.transaction(
+        ["trades"],
+        "readonly"
+    );
 
-    const request = store.openCursor();
+    const store =
+    transaction.objectStore("trades");
 
-    request.onsuccess = function(event){
+    const cursorRequest =
+    store.openCursor();
 
-        const cursor = event.target.result;
+    cursorRequest.onsuccess =
+    function(event){
+
+        const cursor =
+        event.target.result;
 
         if(cursor){
 
-            const trade = cursor.value;
+            const trade =
+            cursor.value;
 
             totalPnL += trade.profit;
+
             totalTrades++;
 
             tradeList.innerHTML += `
-                <div class="trade">
-                    <h3>${trade.pair}</h3>
-                    <p><strong>PnL:</strong> $${trade.profit}</p>
-                    <p>${trade.note}</p>
-                    <small>${trade.date}</small>
 
-                    ${
-                        trade.image
-                        ? `<img src="${trade.image}">`
-                        : ""
-                    }
+            <div class="trade">
 
-                    <button class="delete-btn"
-                    onclick="deleteTrade(${trade.id})">
-                    Delete
-                    </button>
-                </div>
+                <h3>${trade.pair}</h3>
+
+                <p>
+                <strong>PnL:</strong>
+                $${trade.profit}
+                </p>
+
+                <p>${trade.note}</p>
+
+                <small>
+                ${trade.date}
+                </small>
+
+                ${
+                    trade.image
+                    ?
+                    `<img src="${trade.image}">`
+                    :
+                    ""
+                }
+
+                <button
+                class="delete-btn"
+                onclick="deleteTrade(${trade.id})">
+
+                Delete
+
+                </button>
+
+            </div>
+
             `;
 
             cursor.continue();
         }
 
-        document.getElementById("totalTrades").innerText = totalTrades;
-        document.getElementById("totalPnL").innerText = "$" + totalPnL;
+        document.getElementById(
+            "totalTrades"
+        ).innerText = totalTrades;
+
+        document.getElementById(
+            "totalPnL"
+        ).innerText = "$" + totalPnL;
     };
 }
 
 function deleteTrade(id){
 
-    const transaction = db.transaction(["trades"], "readwrite");
-    const store = transaction.objectStore("trades");
+    const transaction =
+    db.transaction(
+        ["trades"],
+        "readwrite"
+    );
+
+    const store =
+    transaction.objectStore("trades");
 
     store.delete(id);
 
     transaction.oncomplete = function(){
+
         loadTrades();
     };
 }
+
 </script>
 
 </body>
